@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.repository.it;
 
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.ITPost;
+import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,10 +11,10 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface ITRepository extends JpaRepository<ITPost, Long> {
+public interface ITRepository extends JpaRepository<Post, Long> {
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-            ip.id,
+            p.id,
             p.id,
             p.title,
             p.content,
@@ -34,8 +34,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             false,
             false
         )
-        FROM ITPost ip
-        JOIN ip.post p
+        FROM Post p
         JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
         WHERE p.boardType = :boardType
@@ -44,7 +43,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
 
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-            ip.id,
+            p.id,
             p.id,
             p.title,
             p.content,
@@ -64,8 +63,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             false,
             false
         )
-        FROM ITPost ip
-        JOIN ip.post p
+        FROM Post p
         JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
         WHERE p.boardType = :boardType
@@ -80,7 +78,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
 
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-            ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
+            p.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
             u.devcourseName, u.devcourseBatch, p.boardType, p.isBlinded, ps.viewCount,
             p.likeCount, 
             (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
@@ -89,33 +87,33 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             (SELECT CASE WHEN COUNT(pl2.id) > 0 THEN true ELSE false END FROM Like pl2 WHERE pl2.post.id = p.id AND pl2.user.id = :userId),
             (SELECT CASE WHEN COUNT(b3.id) > 0 THEN true ELSE false END FROM Bookmark b3 WHERE b3.post.id = p.id AND b3.user.id = :userId)
         )
-        FROM ITPost ip
-        JOIN ip.post p JOIN p.user u
+        FROM Post p
+        JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
-        WHERE ip.id = :itId
+        WHERE p.id = :itId
         """)
     Optional<ITResponseDTO> findDTOByIdForUser(@Param("itId") Long itId,
                                                @Param("userId") Long userId);
 
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-            ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
+            p.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
             u.devcourseName, u.devcourseBatch, p.boardType, p.isBlinded, ps.viewCount,
             p.likeCount, 
             (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
             (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id AND b2.user.id = u.id),
             p.createdAt, p.updatedAt, p.tags, false, false
         )
-        FROM ITPost ip
-        JOIN ip.post p JOIN p.user u
+        FROM Post p
+        JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
-        WHERE ip.id = :itId
+        WHERE p.id = :itId
         """)
     Optional<ITResponseDTO> findDTOByIdForGuest(@Param("itId") Long itId);
 
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-            ip.id,
+            p.id,
             p.id,
             p.title,
             p.content,
@@ -135,8 +133,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             false,
             false
         )
-        FROM ITPost ip
-        JOIN ip.post p
+        FROM Post p
         JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
         WHERE p.boardType = :boardType
@@ -152,7 +149,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
 
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-            ip.id,
+            p.id,
             p.id,
             p.title,
             p.content,
@@ -172,8 +169,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             false,
             false
         )
-        FROM ITPost ip
-        JOIN ip.post p
+        FROM Post p
         JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
         WHERE p.boardType = :boardType

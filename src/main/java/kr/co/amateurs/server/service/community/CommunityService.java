@@ -6,7 +6,6 @@ import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.dto.post.PostViewedEvent;
-import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -15,17 +14,13 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
-import kr.co.amateurs.server.repository.community.CommunityRepository;
-import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
-import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.file.FileService;
-import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,7 +40,6 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 @Service
 @RequiredArgsConstructor
 public class CommunityService {
-    private final CommunityRepository communityRepository;
     private final PostRepository postRepository;
     private final PostStatisticsRepository postStatisticsRepository;
     private final BookmarkRepository bookmarkRepository;
@@ -66,17 +60,17 @@ public class CommunityService {
         if (paginationParam.getField() == PaginationSortType.POST_MOST_VIEW){
             Pageable pageable = PageRequest.of(paginationParam.getPage(), paginationParam.getSize());
             if (keyword != null && !keyword.trim().isEmpty()) {
-                communityPage = communityRepository.findDTOByContentAndBoardTypeOrderByViewCount(keyword.trim(), boardType, pageable);
+                communityPage = postRepository.findDTOByContentAndBoardTypeOrderByViewCount(keyword.trim(), boardType, pageable);
             }
             else{
-                communityPage = communityRepository.findDTOByBoardTypeOrderByViewCount(boardType, pageable);
+                communityPage = postRepository.findDTOByBoardTypeOrderByViewCount(boardType, pageable);
             }
         }else{
             Pageable pageable = paginationParam.toPageable();
             if (keyword != null && !keyword.trim().isEmpty()) {
-                communityPage = communityRepository.findDTOByContentAndBoardType(keyword.trim(), boardType, pageable);
+                communityPage = postRepository.findDTOByContentAndBoardType(keyword.trim(), boardType, pageable);
             } else {
-                communityPage = communityRepository.findDTOByBoardType(boardType, pageable);
+                communityPage = postRepository.findDTOByBoardType(boardType, pageable);
             }
         }
 
@@ -88,10 +82,10 @@ public class CommunityService {
     public CommunityResponseDTO getPost(Long communityId, String ipAddress) {
         User user = userService.getCurrentLoginUser();
 
-        CommunityResponseDTO result = communityRepository.findDTOByIdForUser(communityId, user.getId())
+        CommunityResponseDTO result = postRepository.findDTOByIdForUser(communityId, user.getId())
                 .orElseThrow(ErrorCode.NOT_FOUND);
 
-        eventPublisher.publishEvent(new PostViewedEvent(result.postId(), ipAddress));
+        eventPublisher.publishEvent(new PostViewedEvent(result.id(), ipAddress));
 
         return result.applyBlindFilter();
     }
@@ -103,9 +97,6 @@ public class CommunityService {
         Post post = Post.from(requestDTO, user, boardType);
 
         Post savedPost = postRepository.save(post);
-
-        CommunityPost communityPost = CommunityPost.from(savedPost);
-        CommunityPost savedCommunityPost = communityRepository.save(communityPost);
 
         PostStatistics postStatistics = PostStatistics.from(savedPost);
         postStatisticsRepository.save(postStatistics);
@@ -121,14 +112,13 @@ public class CommunityService {
         List<String> imgUrls = fileService.extractImageUrls(requestDTO.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return CommunityResponseDTO.from(savedCommunityPost, false, false);
+        return CommunityResponseDTO.from(savedPost, false, false);
     }
 
     @Transactional
-    public void updatePost(CommunityRequestDTO requestDTO, Long communityId) {
-        CommunityPost communityPost = findById(communityId);
+    public void updatePost(CommunityRequestDTO requestDTO, Long postId) {
+        Post post = findById(postId);
 
-        Post post = communityPost.getPost();
         validatePost(post);
         if(post.getIsBlinded()){
             throw ErrorCode.IS_BLINDED_POST.get();
@@ -147,9 +137,8 @@ public class CommunityService {
 
     @Transactional
     public void deletePost(Long communityId) {
-        CommunityPost communityPost = findById(communityId);
+        Post post = findById(communityId);
 
-        Post post = communityPost.getPost();
         validatePost(post);
 
         CompletableFuture.runAsync(() -> {
@@ -181,8 +170,8 @@ public class CommunityService {
         return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 
-    public CommunityPost findById(Long communityId) {
-        return communityRepository.findById(communityId)
+    public Post findById(Long postId) {
+        return postRepository.findById(postId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 }

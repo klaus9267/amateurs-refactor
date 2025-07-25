@@ -160,12 +160,11 @@ public class CommentAlarmCreator implements AlarmCreator {
      */
     public AlarmMetaData getMetaData(CommentResponseDTO response, Post post) {
         long postId = switch (post.getBoardType()) {
-            case FREE, QNA, RETROSPECT -> post.getCommunityPost().getId();
+            case FREE, QNA, RETROSPECT,REVIEW, NEWS -> post.getId();
             case MARKET -> post.getMarketItem().getId();
             case GATHER -> post.getGatheringPost().getId();
             case MATCH -> post.getMatchingPost().getId();
             case PROJECT_HUB -> post.getProject().getId();
-            case REVIEW, NEWS -> post.getItPost().getId();
         };
 
         return new CommentMetaData(postId, post.getBoardType(), response.id());

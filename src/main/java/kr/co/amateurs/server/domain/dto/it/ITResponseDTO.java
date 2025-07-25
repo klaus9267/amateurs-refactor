@@ -1,8 +1,6 @@
 package kr.co.amateurs.server.domain.dto.it;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
@@ -67,10 +65,9 @@ public record ITResponseDTO(
         @Schema(description = "현재 사용자가 북마크했는지 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static ITResponseDTO from(ITPost itPost, boolean hasLiked, boolean hasBookmarked) {
-        Post post = itPost.getPost();
+    public static ITResponseDTO from(Post post, boolean hasLiked, boolean hasBookmarked) {
         return new ITResponseDTO(
-                itPost.getId(),
+                post.getId(),
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),

@@ -7,7 +7,6 @@ import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.dto.post.PostViewedEvent;
-import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -112,9 +111,6 @@ public class ITService {
 
         Post savedPost = postRepository.save(post);
 
-        ITPost itPost = ITPost.from(savedPost);
-        ITPost savedITPost = itRepository.save(itPost);
-
         PostStatistics postStatistics = PostStatistics.from(savedPost);
         postStatisticsRepository.save(postStatistics);
 
@@ -131,14 +127,13 @@ public class ITService {
         fileService.savePostImage(savedPost, imgUrls);
 
 
-        return ITResponseDTO.from(savedITPost, false, false);
+        return ITResponseDTO.from(savedPost, false, false);
     }
 
     @Transactional
     public void updatePost(ITRequestDTO requestDTO, Long postId) {
-        ITPost itPost = findById(postId);
+        Post post = findById(postId);
 
-        Post post = itPost.getPost();
         validatePost(post);
         if(post.getIsBlinded()){
             throw ErrorCode.IS_BLINDED_POST.get();
@@ -157,9 +152,8 @@ public class ITService {
 
     @Transactional
     public void deletePost(Long postId) {
-        ITPost itPost = findById(postId);
+        Post post = findById(postId);
 
-        Post post = itPost.getPost();
         validatePost(post);
 
         CompletableFuture.runAsync(() -> {
@@ -191,8 +185,8 @@ public class ITService {
         return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 
-    private ITPost findById(Long itId) {
-        return itRepository.findById(itId)
+    private Post findById(Long itId) {
+        return postRepository.findById(itId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 

@@ -82,7 +82,6 @@ public class SecurityConfig {
                 })
 
 
-                // TODO: 개발 완료 후 아래 설정으로 변경할 예정
 //                .authorizeHttpRequests(auth -> auth
 //                        // 인증 없이 접근 가능
 //                        .requestMatchers(
