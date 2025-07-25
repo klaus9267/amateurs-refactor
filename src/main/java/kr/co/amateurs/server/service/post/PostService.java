@@ -28,11 +28,15 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostService {
+public class PostService  {
 
     private final PostRepository postRepository;
     private final UserService userService;
     private final PostJooqRepository postJooqRepository;
+
+    public BoardType getType() {
+        return BoardType.FREE;
+    }
 
     public List<PostContentData> getWritePosts(Long userId) {
         try {
